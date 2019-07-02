@@ -97,7 +97,7 @@ class DocsLayout extends React.Component<any, any> {
   }
 
   render() {
-    const unhandledProps = getUnhandledProps(DocsLayout, this.props)
+    const unhandledProps = getUnhandledProps(DocsLayout.handledProps, this.props)
 
     return <Route {...unhandledProps} render={this.renderChildren} />
   }

@@ -15,7 +15,6 @@ import {
   isFromKeyboard,
 } from '../../lib'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
 import { WithAsProp, ShorthandValue, ComponentEventHandler, withSafeTypeForAs } from '../../types'
 import Icon from '../Icon/Icon'
 import Box from '../Box/Box'
@@ -32,7 +31,6 @@ export interface ReactionProps
     ContentComponentProps<ShorthandValue> {
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    */
   accessibility?: Accessibility
 
@@ -72,7 +70,6 @@ class Reaction extends UIComponent<WithAsProp<ReactionProps>, ReactionState> {
   }
 
   static defaultProps = {
-    accessibility: defaultBehavior,
     as: 'span',
   }
 

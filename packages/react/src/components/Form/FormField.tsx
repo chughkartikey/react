@@ -11,7 +11,6 @@ import {
   commonPropTypes,
 } from '../../lib'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
 import { WithAsProp, ShorthandValue, withSafeTypeForAs } from '../../types'
 import Text from '../Text/Text'
 import Input from '../Input/Input'
@@ -20,7 +19,6 @@ import Box from '../Box/Box'
 export interface FormFieldProps extends UIComponentProps, ChildrenComponentProps {
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    */
   accessibility?: Accessibility
 
@@ -71,7 +69,6 @@ class FormField extends UIComponent<WithAsProp<FormFieldProps>, any> {
   }
 
   static defaultProps = {
-    accessibility: defaultBehavior,
     as: 'div',
     control: { as: Input },
   }

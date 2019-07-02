@@ -16,7 +16,6 @@ import {
 } from '../../lib'
 import Box from '../Box/Box'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
 import { ComponentSlotStylesPrepared } from '../../themes/types'
 import ChatMessage from './ChatMessage'
 
@@ -28,7 +27,6 @@ export interface ChatItemSlotClassNames {
 export interface ChatItemProps extends UIComponentProps, ChildrenComponentProps {
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    */
   accessibility?: Accessibility
 
@@ -60,7 +58,6 @@ class ChatItem extends UIComponent<WithAsProp<ChatItemProps>, any> {
   }
 
   static defaultProps = {
-    accessibility: defaultBehavior,
     as: 'li',
     contentPosition: 'start',
     attached: false,

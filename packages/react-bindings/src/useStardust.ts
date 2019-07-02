@@ -6,51 +6,36 @@ import renderComponent, {
 } from '@stardust-ui/react/src/lib/renderComponent'
 import { ThemeContext } from 'react-fela'
 import { Manager } from '@stardust-ui/state'
+import { Omit } from '@stardust-ui/react'
+
+export type UseStardustConfig = {
+
+}
 
 const useStardust = <P = {}>(
-  config: RenderConfig<P> & { autoControlledProps: string[] },
+  config: Omit<RenderConfig<P>, 'state' | 'context'> & { autoControlledProps?: string[] },
 ): RenderResultConfig<P> & {
   manager: Manager<any, any>
 } => {
-  const context = React.useContext(ThemeContext)
-  const manager = useStateManager(
-    config.props.stateManager,
-    config.props,
-    config.autoControlledProps,
-  )
+  const displayName = config.displayName
+  // const className = config.className || `ui-${_.kebabCase(displayName)}`
+  const handledProps = config.handledProps
 
-  const {
+  const context = React.useContext(ThemeContext)
+  const manager = useStateManager(props.stateManager, props, config.autoControlledProps)
+
+  const { className, displayName, handledProps, actionHandlers, focusZoneRef } = config
+
+  const result = renderComponent<P>({
     className,
     displayName,
     handledProps,
     props,
-    state,
+    state: manager.state,
     actionHandlers,
-    focusZoneRef,
-  } = config
+    context: context as any,
+  })
 
-  // TODO :O OMG
-  let result = {}
-
-  renderComponent(
-    {
-      className,
-      displayName,
-      handledProps,
-      props,
-      state,
-      actionHandlers,
-      focusZoneRef,
-      render: config => {
-        // TODO :O OMG
-        result = config
-      },
-    },
-    // TODO: :/
-    context as any,
-  )
-
-  // TODO :O OMG
   return { ...result, manager }
 }
 

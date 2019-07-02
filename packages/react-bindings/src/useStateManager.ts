@@ -11,7 +11,7 @@ const useStateManager = <
 >(
   createStateManager: ManagerFactory<State, Actions>,
   props: Props,
-  autoControlledProps: string[],
+  autoControlledProps: string[] = [],
 ): Manager<State, Actions> => {
   const definedAutoControlledProps = getDefinedAutoControlledProps(autoControlledProps, props)
   const autoControlledValues = autoControlledProps.reduce(

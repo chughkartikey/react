@@ -109,12 +109,20 @@ class TreeItem extends UIComponent<WithAsProp<TreeItemProps>> {
   treeRef = React.createRef<HTMLElement>()
 
   actionHandlers = {
+    declarativePerformClick: {
+      preventDefault: true,
+      stopPropagation: true,
+      title: { dispatch: 'click' },
+      // titleNode.click()
+    },
+
     performClick: e => {
       e.preventDefault()
       e.stopPropagation()
 
       _.invoke(this.props, 'onTitleClick', e, this.props)
     },
+
     collapseOrReceiveFocus: e => {
       const { items, open } = this.props
 
@@ -129,6 +137,17 @@ class TreeItem extends UIComponent<WithAsProp<TreeItemProps>> {
         _.invoke(this.props, 'onTitleClick', e, this.props)
       }
     },
+
+    declarativeExpandOfPassFocus: {
+      preventDefault: true,
+      stopPropagation: true,
+      if: {
+        condition: 'open',
+        then: { focus: 'firstElement' },
+        else: { invoke: 'onTitleClick' },
+      },
+    },
+
     expandOrPassFocus: e => {
       const { open } = this.props
 

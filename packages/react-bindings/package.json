@@ -5,6 +5,7 @@
   "author": "Oleksandr Fediashov <olfedias@microsoft.com>",
   "bugs": "https://github.com/stardust-ui/react/issues",
   "dependencies": {
+    "@stardust-ui/state": "^0.30.0",
     "react-is": "^16.6.3"
   },
   "devDependencies": {

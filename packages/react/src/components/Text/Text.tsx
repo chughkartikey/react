@@ -15,7 +15,6 @@ import {
   SizeValue,
 } from '../../lib'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
 import { WithAsProp, withSafeTypeForAs } from '../../types'
 
 export interface TextProps
@@ -25,7 +24,6 @@ export interface TextProps
     ColorComponentProps {
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    */
   accessibility?: Accessibility
 
@@ -82,7 +80,6 @@ class Text extends UIComponent<WithAsProp<TextProps>, any> {
   }
 
   static defaultProps = {
-    accessibility: defaultBehavior,
     as: 'span',
   }
 

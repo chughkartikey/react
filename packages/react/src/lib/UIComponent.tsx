@@ -6,6 +6,7 @@ import { ThemeContext } from 'react-fela'
 import renderComponent, { RenderResultConfig } from './renderComponent'
 import { AccessibilityActionHandlers } from './accessibility/reactTypes'
 import { FocusZone } from './accessibility/FocusZone'
+import { Omit } from '@stardust-ui/react'
 
 // TODO @Bugaa92: deprecated by createComponent.tsx
 class UIComponent<P, S = {}> extends React.Component<P, S> {
@@ -29,7 +30,7 @@ class UIComponent<P, S = {}> extends React.Component<P, S> {
   }
 
   actionHandlers: AccessibilityActionHandlers
-  focusZone: FocusZone
+  focusZoneRef: React.Ref<FocusZone>
 
   constructor(props, context) {
     super(props, context)
@@ -45,28 +46,25 @@ class UIComponent<P, S = {}> extends React.Component<P, S> {
     this.renderComponent = this.renderComponent.bind(this)
   }
 
-  renderComponent(config: RenderResultConfig<P>): React.ReactNode {
+  renderComponent(config: Omit<RenderResultConfig<P>, 'wrap'>): React.ReactNode {
     throw new Error('renderComponent is not implemented.')
   }
 
   render() {
-    return renderComponent(
-      {
-        className: this.childClass.className,
-        displayName: this.childClass.displayName,
-        handledProps: this.childClass.handledProps,
-        props: this.props,
-        state: this.state,
-        actionHandlers: this.actionHandlers,
-        focusZoneRef: this.setFocusZoneRef,
-        render: this.renderComponent,
-      },
-      this.context,
-    )
-  }
+    const { wrap, ...config } = renderComponent<P>({
+      className: this.childClass.className,
+      displayName: this.childClass.displayName,
+      handledProps: this.childClass.handledProps,
+      props: this.props,
+      state: this.state,
+      actionHandlers: this.actionHandlers,
+      // TODO: we need to get the ref from the FocusZone which is created inside renderComponent
+      // TODO: need to reimplement something similar to passing in the ref callback, but not that...
+      focusZoneRef: this.focusZoneRef,
+      context: this.context,
+    })
 
-  setFocusZoneRef = (focusZone: FocusZone): void => {
-    this.focusZone = focusZone
+    return wrap(this.renderComponent(config))
   }
 }
 

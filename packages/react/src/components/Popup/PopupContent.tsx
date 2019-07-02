@@ -16,7 +16,6 @@ import {
   rtlTextContainer,
 } from '../../lib'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
 import { PopperChildrenProps } from '../../lib/positioner'
 import { WithAsProp, ComponentEventHandler, withSafeTypeForAs } from '../../types'
 import Box from '../Box/Box'
@@ -27,7 +26,6 @@ export interface PopupContentProps
     ContentComponentProps {
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    */
   accessibility?: Accessibility
 
@@ -78,9 +76,7 @@ class PopupContent extends UIComponent<WithAsProp<PopupContentProps>> {
     unstable_wrapped: PropTypes.bool,
   }
 
-  static defaultProps = {
-    accessibility: defaultBehavior,
-  }
+  static defaultProps = {}
 
   handleMouseEnter = e => {
     _.invoke(this.props, 'onMouseEnter', e, this.props)

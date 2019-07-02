@@ -9,6 +9,7 @@ import {
   commonPropTypes,
   rtlTextContainer,
   applyAccessibilityKeyHandlers,
+  renderComponent as getStardust,
 } from '../../lib'
 import ChatItem from './ChatItem'
 import ChatMessage from './ChatMessage'
@@ -16,6 +17,7 @@ import { WithAsProp, ShorthandValue, withSafeTypeForAs } from '../../types'
 import { Accessibility } from '../../lib/accessibility/types'
 import { chatBehavior } from '../../lib/accessibility'
 import { UIComponentProps, ChildrenComponentProps } from '../../lib/commonPropInterfaces'
+import { FocusZone } from '../../lib/accessibility/FocusZone'
 
 export interface ChatSlotClassNames {
   item: string
@@ -56,14 +58,26 @@ class Chat extends UIComponent<WithAsProp<ChatProps>, any> {
   static Item = ChatItem
   static Message = ChatMessage
 
+  focusZoneRef = React.createRef<FocusZone>()
+
   actionHandlers = {
-    focus: () => this.focusZone && this.focusZone.focus(),
+    focus: () => this.focusZoneRef.current && this.focusZoneRef.current.focus(),
   }
 
-  renderComponent({ ElementType, classes, accessibility, unhandledProps }) {
+  renderComponent() {
     const { children, items } = this.props
+    const { wrap, ElementType, classes, accessibility, unhandledProps } = getStardust({
+      className: Chat.className,
+      displayName: Chat.displayName,
+      handledProps: Chat.handledProps,
+      props: this.props,
+      state: this.state,
+      actionHandlers: this.actionHandlers,
+      focusZoneRef: this.focusZoneRef,
+      context: this.context,
+    })
 
-    return (
+    return wrap(
       <ElementType
         className={classes.root}
         {...accessibility.attributes.root}
@@ -76,7 +90,7 @@ class Chat extends UIComponent<WithAsProp<ChatProps>, any> {
           : _.map(items, item =>
               ChatItem.create(item, { defaultProps: { className: Chat.slotClassNames.item } }),
             )}
-      </ElementType>
+      </ElementType>,
     )
   }
 }

@@ -76,7 +76,6 @@ export interface AccordionProps extends UIComponentProps, ChildrenComponentProps
 
   /**
    * Accessibility behavior if overridden by the user.
-   * @default defaultBehavior
    * */
   accessibility?: Accessibility
 }

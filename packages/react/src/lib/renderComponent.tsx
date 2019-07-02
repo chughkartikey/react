@@ -18,12 +18,11 @@ import {
   ThemePrepared,
 } from '../themes/types'
 import { Props, ProviderContextPrepared } from '../types'
-import { AccessibilityDefinition, FocusZoneMode, FocusZoneDefinition } from './accessibility/types'
+import { AccessibilityDefinition, FocusZoneMode } from './accessibility/types'
 import { ReactAccessibilityBehavior, AccessibilityActionHandlers } from './accessibility/reactTypes'
-import { defaultBehavior } from './accessibility'
 import getKeyDownHandlers from './getKeyDownHandlers'
 import { mergeComponentStyles, mergeComponentVariables } from './mergeThemes'
-import { FocusZoneProps, FocusZone, FocusZone as FabricFocusZone } from './accessibility/FocusZone'
+import { FocusZone, FocusZone as FabricFocusZone } from './accessibility/FocusZone'
 import { FOCUSZONE_WRAP_ATTRIBUTE } from './accessibility/FocusZone/focusUtilities'
 import createAnimationStyles from './createAnimationStyles'
 
@@ -36,30 +35,36 @@ export interface RenderResultConfig<P> {
   accessibility: ReactAccessibilityBehavior
   rtl: boolean
   theme: ThemePrepared
+  wrap: RenderComponentCallback<P>
 }
 
-export type RenderComponentCallback<P> = (config: RenderResultConfig<P>) => any
+// TODO: can we rename?
+export type RenderComponentCallback<P> = (
+  children: React.ReactNode | React.ReactNodeArray,
+) => React.ReactElement<P>
 
 export interface RenderConfig<P> {
   className?: string
   displayName: string
-  handledProps: string[]
+  handledProps?: string[]
   props: PropsWithVarsAndStyles
   state: State
   actionHandlers: AccessibilityActionHandlers
-  focusZoneRef: (focusZone: FocusZone) => void
-  render: RenderComponentCallback<P>
+  focusZoneRef?: React.Ref<FocusZone>
+  context: ProviderContextPrepared
 }
 
 const getAccessibility = (
+  behavior,
   props: State & PropsWithVarsAndStyles,
   actionHandlers: AccessibilityActionHandlers,
   isRtlEnabled: boolean,
-) => {
-  const { accessibility: customAccessibility, defaultAccessibility } = props
-  const accessibility: AccessibilityDefinition = (customAccessibility ||
-    defaultAccessibility ||
-    defaultBehavior)(props)
+): ReactAccessibilityBehavior => {
+  if (!behavior) {
+    return { attributes: {}, keyActions: {}, childBehaviors: {} }
+  }
+
+  const accessibility: AccessibilityDefinition = behavior(props)
 
   const keyHandlers = getKeyDownHandlers(actionHandlers, accessibility.keyActions, isRtlEnabled)
   return {
@@ -68,65 +73,7 @@ const getAccessibility = (
   }
 }
 
-/**
- * This function provides compile-time type checking for the following:
- * - if FocusZone implements FocusZone interface,
- * - if FocusZone properties extend FocusZoneProps, and
- * - if the passed properties extend FocusZoneProps.
- *
- * Should the FocusZone implementation change at any time, this function should provide a compile-time guarantee
- * that the new implementation is backwards compatible with the old implementation.
- */
-function wrapInGenericFocusZone<
-  COMPONENT_PROPS extends FocusZoneProps,
-  PROPS extends COMPONENT_PROPS,
-  COMPONENT extends FocusZone & React.Component<COMPONENT_PROPS>
->(
-  FocusZone: { new (...args: any[]): COMPONENT },
-  props: PROPS | undefined,
-  children: React.ReactNode,
-  ref: (focusZone: FocusZone) => void,
-) {
-  props[FOCUSZONE_WRAP_ATTRIBUTE] = true
-  return (
-    <FocusZone ref={ref} {...props}>
-      {children}
-    </FocusZone>
-  )
-}
-
-const renderWithFocusZone = <P extends {}>(
-  render: RenderComponentCallback<P>,
-  focusZoneDefinition: FocusZoneDefinition,
-  config: RenderResultConfig<P>,
-  focusZoneRef: (focusZone: FocusZone) => void,
-): any => {
-  if (focusZoneDefinition.mode === FocusZoneMode.Wrap) {
-    return wrapInGenericFocusZone(
-      FabricFocusZone,
-      {
-        ...focusZoneDefinition.props,
-        isRtl: config.rtl,
-      },
-      render(config),
-      focusZoneRef,
-    )
-  }
-  if (focusZoneDefinition.mode === FocusZoneMode.Embed) {
-    const originalElementType = config.ElementType
-    config.ElementType = FabricFocusZone as any
-    config.unhandledProps = { ...config.unhandledProps, ...focusZoneDefinition.props }
-    config.unhandledProps.as = originalElementType
-    config.unhandledProps.ref = focusZoneRef
-    config.unhandledProps.isRtl = config.rtl
-  }
-  return render(config)
-}
-
-const renderComponent = <P extends {}>(
-  config: RenderConfig<P>,
-  context: ProviderContextPrepared,
-): React.ReactElement<P> => {
+const renderComponent = <P extends {}>(config: RenderConfig<P>): RenderResultConfig<P> => {
   const {
     className,
     displayName,
@@ -135,7 +82,7 @@ const renderComponent = <P extends {}>(
     state,
     actionHandlers,
     focusZoneRef,
-    render,
+    context,
   } = config
 
   if (_.isEmpty(context)) {
@@ -175,12 +122,13 @@ const renderComponent = <P extends {}>(
   )
 
   const accessibility: ReactAccessibilityBehavior = getAccessibility(
+    props.accessibility,
     stateAndProps,
     actionHandlers,
     rtl,
   )
 
-  const unhandledProps = getUnhandledProps({ handledProps }, props)
+  const unhandledProps = getUnhandledProps(handledProps, props)
 
   const styleParam: ComponentStyleFunctionParam = {
     props: stateAndProps,
@@ -212,13 +160,35 @@ const renderComponent = <P extends {}>(
     accessibility,
     rtl,
     theme: context.theme,
+    wrap: (element: React.ReactElement<P>) => element,
   }
 
-  if (accessibility.focusZone) {
-    return renderWithFocusZone(render, accessibility.focusZone, resolvedConfig, focusZoneRef)
+  if (accessibility.focusZone && accessibility.focusZone.mode === FocusZoneMode.Wrap) {
+    resolvedConfig.wrap = children => (
+      <FabricFocusZone
+        ref={focusZoneRef}
+        isRtl={resolvedConfig.rtl}
+        {...accessibility.focusZone.props}
+        {...{ [FOCUSZONE_WRAP_ATTRIBUTE]: true }}
+      >
+        {children}
+      </FabricFocusZone>
+    )
   }
 
-  return render(resolvedConfig)
+  if (accessibility.focusZone && accessibility.focusZone.mode === FocusZoneMode.Embed) {
+    const originalElementType = resolvedConfig.ElementType
+    resolvedConfig.ElementType = FabricFocusZone as any
+    resolvedConfig.unhandledProps = {
+      ...resolvedConfig.unhandledProps,
+      ...accessibility.focusZone.props,
+    }
+    resolvedConfig.unhandledProps.as = originalElementType
+    resolvedConfig.unhandledProps.ref = focusZoneRef
+    resolvedConfig.unhandledProps.isRtl = resolvedConfig.rtl
+  }
+
+  return resolvedConfig
 }
 
 export default renderComponent

@@ -15,8 +15,6 @@ import { mergeComponentVariables } from '../../lib/mergeThemes'
 
 import { ShorthandCollection, WithAsProp, withSafeTypeForAs } from '../../types'
 import { Accessibility } from '../../lib/accessibility/types'
-import { defaultBehavior } from '../../lib/accessibility'
-
 import ToolbarDivider from './ToolbarDivider'
 import ToolbarItem from './ToolbarItem'
 
@@ -45,10 +43,6 @@ class ToolbarRadioGroup extends UIComponent<WithAsProp<ToolbarRadioGroupProps>> 
   static propTypes = {
     ...commonPropTypes.createCommon(),
     items: customPropTypes.collectionShorthandWithKindProp(['divider', 'item']),
-  }
-
-  static defaultProps = {
-    accessibility: defaultBehavior as Accessibility,
   }
 
   handleItemOverrides = variables => predefinedProps => ({

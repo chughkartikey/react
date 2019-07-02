@@ -1,13 +1,9 @@
-import * as React from 'react'
-
 export const getDefaultPropName = (propName: string) =>
   `default${propName[0].toUpperCase() + propName.slice(1)}`
 
-export const getDefinedAutoControlledProps = <P extends Record<string, any>, N extends keyof P>(
-  autoControlledProps: N[],
-  props: P,
-) => {
-  const definedProps: Partial<P> = {}
+// TODO: type args
+export const getDefinedAutoControlledProps = (autoControlledProps: any[] = [], props: any) => {
+  const definedProps: any = {}
 
   autoControlledProps.forEach(k => {
     if (props[k] !== undefined) {
